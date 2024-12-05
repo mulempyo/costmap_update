@@ -13,10 +13,13 @@ namespace update{
 
       public:
       void laserReceived(const sensor_msgs::LaserScanConstPtr& laser_scan);
-      void updateCostmap(costmap_2d::Costmap2D* costmap);
+      void updateCostmap(const sensor_msgs::LaserScanConstPtr& laser_scan, costmap_2d::Costmap2D* costmap);
 
-      sensor_msgs::LaserScanConstPtr laser_scan_;
+      //sensor_msgs::LaserScanConstPtr scan_laser_;
       ros::Subscriber sub;
+      ros::Publisher pub;
+      costmap_2d::Costmap2DROS* global_costmap_ros_;
+      costmap_2d::Costmap2D* global_costmap_;
     };
 }
 
