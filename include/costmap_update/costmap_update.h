@@ -18,8 +18,8 @@ namespace update{
       //sensor_msgs::LaserScanConstPtr scan_laser_;
       ros::Subscriber sub;
       ros::Publisher pub;
-      costmap_2d::Costmap2DROS* global_costmap_ros_;
-      costmap_2d::Costmap2D* global_costmap_;
+      costmap_2d::Costmap2DROS* update_costmap_ros_;
+      costmap_2d::Costmap2D* update_costmap_;
     };
 }
 
