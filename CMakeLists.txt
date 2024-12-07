@@ -13,10 +13,12 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
   tf2
+  nav_msgs
+  dwa_planner_ros
 )
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+#find_package(Boost REQUIRED COMPONENTS system)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -106,9 +108,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
    INCLUDE_DIRS include
-#  LIBRARIES costmap_update
-   CATKIN_DEPENDS costmap_2d geometry_msgs roscpp sensor_msgs tf2
-#  DEPENDS system_lib
+   LIBRARIES costmap_update 
+   CATKIN_DEPENDS costmap_2d geometry_msgs roscpp sensor_msgs tf2 nav_msgs dwa_planner_ros
+   DEPENDS system_lib
 )
 
 ###########
@@ -208,6 +210,6 @@ include_directories(
 # catkin_add_nosetests(test)
 
 add_executable(update_map src/costmap_update.cpp)
-target_link_libraries(update_map ${catkin_LIBRARIES})
+target_link_libraries(update_map ${catkin_LIBRARIES} dwa_planner_ros)
 add_dependencies(update_map ${catkin_EXPORTED_TARGETS})
 
