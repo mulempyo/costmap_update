@@ -1,0 +1,5 @@
+<launch>
+  <node pkg="costmap_update" type="update_map" name="costmap_update">
+    <!--<rosparam file="$(find costmap_update)/param/costmap_update.yaml" command="load"/>-->
+  </node>
+</launch>
