@@ -8,8 +8,15 @@
 #include "tf2_ros/transform_listener.h"
 #include <nav_msgs/OccupancyGrid.h>
 #include <dwa_planner_ros/dwa_planner_ros.h>
+#include <memory>
 
 namespace update{
+
+MapUpdate::MapUpdate(){
+  tf_.reset(new tf2_ros::Buffer);
+  tf_->setUsingDedicatedThread(true);
+  tfl_.reset(new tf2_ros::TransformListener(*tf_));
+}
 
 void MapUpdate::laserReceived(const sensor_msgs::LaserScanConstPtr& laser_scan){
    update_costmap_ = update_costmap_ros_->getCostmap();
@@ -70,13 +77,17 @@ void MapUpdate::updateCostmap(const sensor_msgs::LaserScanConstPtr& laser_scan_,
    
    nav_msgs::OccupancyGrid grid;
    grid.header.stamp = ros::Time::now();
-   grid.header.frame_id = "map";
+   grid.header.frame_id = "odom";
    grid.info.resolution = costmap->getResolution();
    grid.info.width = costmap->getSizeInCellsX();
    grid.info.height = costmap->getSizeInCellsY();
    grid.info.origin.position.x = costmap->getOriginX();
    grid.info.origin.position.y = costmap->getOriginY();
-   pub.publish(grid);
+
+   nav_msgs::OccupancyGrid local_grid;
+   geometry_msgs::TransformStamped transformStamped = tf_->lookupTransform("base_footprint",    "odom", ros::Time::now(), ros::Duration(1.0));
+   tf2::doTransform(grid, local_grid, transformStamped);
+   pub.publish(local_grid); 
   } 
 
 
@@ -87,6 +98,7 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "update_map");
 
     ros::NodeHandle nh;
+  
     update::MapUpdate update_;
    
     tf2_ros::Buffer buffer(ros::Duration(10));
@@ -97,10 +109,10 @@ int main(int argc, char** argv)
     update_.sub = nh.subscribe("scan",10,&update::MapUpdate::laserReceived, &update_);
     update_.pub = nh.advertise<nav_msgs::OccupancyGrid>("update_costmap",10);
 
-    dwa_planner_ros::DWAPlannerROS dwa_;
-    dwa_.costmap_sub_ = nh.subscribe("update_costmap", 10, &dwa_planner_ros::DWAPlannerROS::costmapCallback, &dwa_);
+    //dwa_planner_ros::DWAPlannerROS dwa_;
+    //dwa_.costmap_sub_ = nh.subscribe("update_costmap", 10, &dwa_planner_ros::DWAPlannerROS::costmapCallback, &dwa_);
 
     ros::spin();
-
+    delete update_.update_costmap_ros_;
     return 0;
 }
