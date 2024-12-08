@@ -2,19 +2,14 @@ cmake_minimum_required(VERSION 3.0.2)
 project(costmap_update)
 
 find_package(catkin REQUIRED COMPONENTS
-  costmap_2d
-  geometry_msgs
   roscpp
-  sensor_msgs
-  tf2
-  nav_msgs
   dwa_planner_ros
 )
 
 catkin_package(
-   INCLUDE_DIRS include
+#   INCLUDE_DIRS include
    LIBRARIES costmap_update
-   CATKIN_DEPENDS costmap_2d geometry_msgs roscpp sensor_msgs tf2 nav_msgs dwa_planner_ros
+   CATKIN_DEPENDS roscpp dwa_planner_ros
 )
 
 include_directories(
