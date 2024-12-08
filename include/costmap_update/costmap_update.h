@@ -17,7 +17,6 @@ namespace update{
       public:
 
       MapUpdate();
-      ~MapUpdate();
 
       void laserReceived(const sensor_msgs::LaserScanConstPtr& laser_scan);
       void updateCostmap(const sensor_msgs::LaserScanConstPtr& laser_scan, costmap_2d::Costmap2D* costmap);
@@ -27,10 +26,9 @@ namespace update{
       ros::Publisher pub;
       costmap_2d::Costmap2DROS* update_costmap_ros_;
       costmap_2d::Costmap2D* update_costmap_;
-   
-      std::shared_ptr<tf2_ros::Buffer> buffer_;
-      std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
-      
+  
+      std::shared_ptr<tf2_ros::Buffer> tf_;
+      std::shared_ptr<tf2_ros::TransformListener> tfl_;
     };
 }
 
