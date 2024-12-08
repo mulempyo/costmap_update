@@ -13,14 +13,9 @@
 namespace update{
 
 MapUpdate::MapUpdate(){
-  buffer_ = std::make_shared<tf2_ros::Buffer>(ros::Duration(10));
-  tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*buffer_);
-  update_costmap_ros_ = new costmap_2d::Costmap2DROS("update_costmap", *buffer_);
-  update_costmap_ros_->start(); 
-}
-
-MapUpdate::~MapUpdate(){
-   delete update_costmap_ros_;
+    tf_.reset(new tf2_ros::Buffer);
+    tf_->setUsingDedicatedThread(true);
+    tfl_.reset(new tf2_ros::TransformListener(*tf_));
 }
 
 void MapUpdate::laserReceived(const sensor_msgs::LaserScanConstPtr& laser_scan){
@@ -32,12 +27,10 @@ void MapUpdate::updateCostmap(const sensor_msgs::LaserScanConstPtr& laser_scan_,
 
     if (!laser_scan_) {
       ROS_WARN("laser_scan_ is null");
-      return;
     }
 
     if (!costmap) {
       ROS_WARN("costmap is null");
-      return;
     }
 
     std::vector<geometry_msgs::Point> obstacles;
@@ -81,71 +74,41 @@ void MapUpdate::updateCostmap(const sensor_msgs::LaserScanConstPtr& laser_scan_,
             }
         }
     }
-   
-  nav_msgs::OccupancyGrid grid;
-  grid.header.stamp = ros::Time::now();
-  grid.header.frame_id = "odom";
-  grid.info.resolution = costmap->getResolution();
-  grid.info.width = costmap->getSizeInCellsX();
-  grid.info.height = costmap->getSizeInCellsY();
-  grid.info.origin.position.x = costmap->getOriginX();
-  grid.info.origin.position.y = costmap->getOriginY();
-  grid.data.resize(grid.info.width * grid.info.height);
-
-  for (unsigned int i = 0; i < grid.info.width; ++i) {
-    for (unsigned int j = 0; j < grid.info.height; ++j) {
-        unsigned int index = j * grid.info.width + i;
-        grid.data[index] = costmap->getCost(i, j);
-      }
-  }
+   ROS_WARN("success costmap update");
+  } 
 
 
-  if (!buffer_->canTransform("base_footprint", "odom", ros::Time::now(), ros::Duration(1.0))) {
-    ROS_WARN("Cannot transform from base_footprint to odom");
-    return;
-  }
-
-  geometry_msgs::TransformStamped transformStamped;
-  try {
-      transformStamped = buffer_->lookupTransform("base_footprint", "odom", ros::Time::now(), ros::Duration(1.0));
-  } catch (tf2::TransformException& ex) {
-      ROS_WARN("Transform error: %s", ex.what());
-      return;
-  }
-
-  nav_msgs::OccupancyGrid local_grid = grid;
-  local_grid.header.frame_id = "base_footprint";
-
-  geometry_msgs::PointStamped origin_odom, origin_base;
-  origin_odom.point.x = grid.info.origin.position.x;
-  origin_odom.point.y = grid.info.origin.position.y;
-  origin_odom.point.z = 0.0;
-  origin_odom.header.frame_id = "odom";
-
-  tf2::doTransform(origin_odom, origin_base, transformStamped);
-  local_grid.info.origin.position.x = origin_base.point.x;
-  local_grid.info.origin.position.y = origin_base.point.y;
-  pub.publish(local_grid); 
-} 
-
-} // namespace update
+}//namespace
 
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "update_map");
 
     ros::NodeHandle nh;
-   
+
+    // Initialize TF buffer and listener
+    std::shared_ptr<tf2_ros::Buffer> tf_buffer = std::make_shared<tf2_ros::Buffer>(ros::Duration(10));
+    std::shared_ptr<tf2_ros::TransformListener> tf_listener = std::make_shared<tf2_ros::TransformListener>(*tf_buffer);
+
+    // Initialize Costmap2DROS
+    std::shared_ptr<costmap_2d::Costmap2DROS> costmap_ros = std::make_shared<costmap_2d::Costmap2DROS>("update_costmap", *tf_buffer);
+    costmap_ros->start();
+
+    // Initialize MapUpdate with the same Costmap2DROS instance
     update::MapUpdate update_;
-  
+    update_.update_costmap_ros_ = costmap_ros.get(); // Assuming update_costmap_ros_ is a raw pointer
     update_.sub = nh.subscribe("scan", 10, &update::MapUpdate::laserReceived, &update_);
-    update_.pub = nh.advertise<nav_msgs::OccupancyGrid>("update_costmap", 10);
 
-    dwa_planner_ros::DWAPlannerROS dwa_;
-    dwa_.costmap_sub_ = nh.subscribe("update_costmap", 10, &dwa_planner_ros::DWAPlannerROS::costmapCallback, &dwa_);
+    // Initialize DWAPlannerROS with the same Costmap2DROS instance
+    //dwa_planner_ros::DWAPlannerROS dwa_planner;
+    //dwa_planner.initialize("dwa_planner", tf_buffer.get(), costmap_ros.get());
 
+    // Optionally, set up publishers/subscribers for DWAPlannerROS
+    // For example, subscribe to a global plan and publish velocity commands
+    // This depends on your specific application and integration needs
+
+    // Main loop
     ros::spin();
 
     return 0;
 }
-
