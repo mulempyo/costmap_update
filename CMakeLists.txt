@@ -7,8 +7,6 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
   tf2
-  tf2_ros
-  tf2_geometry_msgs
   nav_msgs
   dwa_planner_ros
 )
@@ -16,7 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
    INCLUDE_DIRS include
    LIBRARIES costmap_update
-   CATKIN_DEPENDS costmap_2d geometry_msgs roscpp sensor_msgs tf2 tf2_ros tf2_geometry_msgs nav_msgs dwa_planner_ros
+   CATKIN_DEPENDS costmap_2d geometry_msgs roscpp sensor_msgs tf2 nav_msgs dwa_planner_ros
 )
 
 include_directories(
@@ -32,7 +30,6 @@ add_executable(update_map src/costmap_update.cpp)
 
 target_link_libraries(update_map
   ${catkin_LIBRARIES}
-  tf2_geometry_msgs
   dwa_planner_ros
 )
 
