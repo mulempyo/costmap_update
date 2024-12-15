@@ -3,13 +3,15 @@ project(costmap_update)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  geometry_msgs
   dwa_planner_ros
+  visualization_msgs
 )
 
 catkin_package(
 #   INCLUDE_DIRS include
    LIBRARIES costmap_update
-   CATKIN_DEPENDS roscpp dwa_planner_ros
+   CATKIN_DEPENDS roscpp dwa_planner_ros geometry_msgs visualization_msgs
 )
 
 include_directories(
