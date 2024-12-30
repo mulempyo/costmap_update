@@ -77,6 +77,7 @@ int main(int argc, char** argv)
     dwa_planner_ros::DWAPlannerROS dwa_;
     
     dwa_.sub_ = nh.subscribe("scan", 10, &dwa_planner_ros::DWAPlannerROS::laserCallback, &dwa_);
+    dwa_.amcl_sub_ = nh.subscribe("/safe", 10, &dwa_planner_ros::DWAPlannerROS::safeMode, &dwa_);
 
     marker_array_pub = nh.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 1);
 
